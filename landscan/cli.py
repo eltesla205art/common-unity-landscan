@@ -28,6 +28,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None) -> int:
+    # Windows consoles default to a legacy code page; keep the log printable everywhere.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:  # noqa: BLE001
+            pass
     args = build_parser().parse_args(argv)
     if args.gui or (args.input is None and not args.check):
         from .gui import run_gui
