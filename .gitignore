@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+build/
+dist/
+tests/out/
+tests/_tiles/
+tests/ci_run/
+tests/synthetic_tiles/
+.venv/

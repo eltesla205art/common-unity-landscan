@@ -1,0 +1,49 @@
+name: Build LandScan
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: Common-Unity-LandScan-windows.zip
+          - os: macos-latest
+            artifact: Common-Unity-LandScan-mac.zip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+      - name: Test pipeline
+        run: |
+          pip install pyproj
+          python tests/make_synthetic.py tests/_tiles
+          python main.py tests/_tiles -o tests -n ci_run
+      - name: Build
+        run: pyinstaller LandScan.spec
+      - name: Zip (Windows)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path "dist\Common Unity LandScan.exe", README.md, LICENSE -DestinationPath ${{ matrix.artifact }}
+      - name: Zip (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cd dist && ditto -c -k --sequesterRsrc --keepParent "Common Unity LandScan.app" "../${{ matrix.artifact }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact }}

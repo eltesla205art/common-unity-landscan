@@ -1,0 +1,8 @@
+numpy>=1.26
+scipy>=1.11
+laspy>=2.5
+lazrs>=0.6
+rasterio>=1.3
+pyproj>=3.6
+Pillow>=10
+customtkinter>=5.2
